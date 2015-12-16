@@ -113,12 +113,12 @@ namespace storydecode
                     Environment.Exit(1);
                 }
                 srcpath = fd.FileName;
-                File.WriteAllBytes(fd.FileName + ".old", Parser.Create().callConvertToByte("おはようございます ! "));
-                File.WriteAllBytes(fd.FileName + ".new", Parser.Create().callConvertToByte("Ｍｏｒｎｉｎｇ　　 ! "));
+                //File.WriteAllBytes(fd.FileName + ".old", Parser.Create().callConvertToByte("おはようございます ! "));
+                //File.WriteAllBytes(fd.FileName + ".new", Parser.Create().callConvertToByte("Ｍｏｒｎｉｎｇ　　 ! "));
             }
             
-            //decodeDerestageStory(srcpath);
-            //decodeRaw(srcpath);
+            decodeDerestageStory(srcpath);
+            decodeRaw(srcpath);
             Environment.Exit(0);
         }
     }
