@@ -118,7 +118,7 @@ namespace storydecode
             }
             
             decodeDerestageStory(srcpath);
-            decodeRaw(srcpath);
+            //decodeRaw(srcpath);
             Environment.Exit(0);
         }
     }
