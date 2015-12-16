@@ -26,7 +26,6 @@ namespace storydecode
             string name = Path.GetFileNameWithoutExtension(srcpath);
             List<CommandStruct> commandlist = parser.ConvertBinaryToCommandList(bytes);
             string line = "";
-            int i = 1;
             foreach (CommandStruct command in commandlist)
             {
                 if (command.Name.Equals("title"))
@@ -45,7 +44,7 @@ namespace storydecode
                 }
                 line = String.Concat(line, command.Category.ToString(), "\r\n", "\r\n");
             }
-            File.WriteAllText(String.Concat(Path.GetDirectoryName(Path.GetFullPath(srcpath)), Path.DirectorySeparatorChar.ToString(), "out", Path.DirectorySeparatorChar.ToString(), name), line);
+            File.WriteAllText(String.Concat(Path.GetDirectoryName(Path.GetFullPath(srcpath)), Path.DirectorySeparatorChar.ToString(), "", Path.DirectorySeparatorChar.ToString(), name), line);
         }
 
         public void decodeDerestageStory(string srcpath)
@@ -78,12 +77,12 @@ namespace storydecode
                     i++;
                     line = String.Concat(line, "\r\n");
                 }
-                if (command.Name.Equals("choice"))
+                if (command.Name.Equals("choice") || command.Name.Equals("outline") || command.Name.Equals("situation"))
                 {
                     int j = 1;
                     foreach (string arg in command.Args)
                     {
-                        line = String.Concat(line, i.ToString(), ".", j.ToString(), " [choice] ", arg, "\r\n");
+                        line = String.Concat(line, i.ToString(), ".", j.ToString(), " [" + command.Name + "] ", arg, "\r\n");
                         j++;
                     }
                     i++;
@@ -91,6 +90,11 @@ namespace storydecode
                 }
             }
             File.WriteAllText(String.Concat(Path.GetDirectoryName(Path.GetFullPath(srcpath)), Path.DirectorySeparatorChar.ToString(), "out", Path.DirectorySeparatorChar.ToString(), name), line);
+        }
+
+        public void serializeDerestageCommand(CommandStruct command)
+        {
+
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -109,8 +113,11 @@ namespace storydecode
                     Environment.Exit(1);
                 }
                 srcpath = fd.FileName;
+                File.WriteAllBytes(fd.FileName + ".old", Parser.Create().callConvertToByte("おはようございます ! "));
+                File.WriteAllBytes(fd.FileName + ".new", Parser.Create().callConvertToByte("Ｍｏｒｎｉｎｇ　　 ! "));
             }
-            decodeDerestageStory(srcpath);
+            
+            //decodeDerestageStory(srcpath);
             //decodeRaw(srcpath);
             Environment.Exit(0);
         }
