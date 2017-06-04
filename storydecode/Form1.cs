@@ -49,52 +49,64 @@ namespace storydecode
 
         public void decodeDerestageStory(string srcpath)
         {
-            Parser parser = Parser.Create();
-            byte[] bytes = File.ReadAllBytes(Path.GetFullPath(srcpath));
-            string name = Path.GetFileNameWithoutExtension(srcpath);
-            List<CommandStruct> commandlist = parser.ConvertBinaryToCommandList(bytes);
-            string line = "";
-            int i = 1;
-            foreach (CommandStruct command in commandlist)
+            try
             {
-                if (command.Name.Equals("title"))
+                Parser parser = Parser.Create();
+                byte[] bytes = File.ReadAllBytes(Path.GetFullPath(srcpath));
+                string name = Path.GetFileNameWithoutExtension(srcpath);
+                List<CommandStruct> commandlist = parser.ConvertBinaryToCommandList(bytes);
+                string line = "";
+                int i = 1;
+                foreach (CommandStruct command in commandlist)
                 {
-                    name = String.Concat(name, " [", command.Args[0], "].txt");
-                    string illegalchars = String.Concat(new string(Path.GetInvalidFileNameChars()), new string(Path.GetInvalidPathChars()));
-                    foreach (char c in illegalchars)
+                    if (command.Name.Equals("title"))
                     {
-                        name = name.Replace(c.ToString(), String.Empty);
+                        name = String.Concat(name, " [", command.Args[0], "].txt");
+                        string illegalchars = String.Concat(new string(Path.GetInvalidFileNameChars()), new string(Path.GetInvalidPathChars()));
+                        foreach (char c in illegalchars)
+                        {
+                            name = name.Replace(c.ToString(), String.Empty);
+                        }
+                    }
+                    if (command.Name.Equals("print"))
+                    {
+                        int j = 1;
+                        foreach (string arg in command.Args)
+                        {
+                            line = String.Concat(line, i.ToString(), ".", j.ToString(), " ", arg, "\r\n");
+                            j++;
+                        }
+                        i++;
+                        line = String.Concat(line, "\r\n");
+                    }
+                    if (command.Name.Equals("choice") || command.Name.Equals("outline") || command.Name.Equals("situation"))
+                    {
+                        int j = 1;
+                        foreach (string arg in command.Args)
+                        {
+                            line = String.Concat(line, i.ToString(), ".", j.ToString(), " [" + command.Name + "] ", arg, "\r\n");
+                            j++;
+                        }
+                        i++;
+                        line = String.Concat(line, "\r\n");
                     }
                 }
-                if (command.Name.Equals("print"))
+                string filepath = String.Concat(Path.GetDirectoryName(Path.GetFullPath(srcpath)), Path.DirectorySeparatorChar.ToString(), "out", Path.DirectorySeparatorChar.ToString(), name);
+                try
                 {
-                    int j = 1;
-                    foreach (string arg in command.Args)
-                    {
-                        line = String.Concat(line, i.ToString(), ".", j.ToString(), " ", arg, "\r\n");
-                        j++;
-                    }
-                    i++;
-                    line = String.Concat(line, "\r\n");
+                    Directory.CreateDirectory("out");
                 }
-                if (command.Name.Equals("choice") || command.Name.Equals("outline") || command.Name.Equals("situation"))
+                catch { }
+                if (!File.Exists(filepath))
                 {
-                    int j = 1;
-                    foreach (string arg in command.Args)
-                    {
-                        line = String.Concat(line, i.ToString(), ".", j.ToString(), " [" + command.Name + "] ", arg, "\r\n");
-                        j++;
-                    }
-                    i++;
-                    line = String.Concat(line, "\r\n");
+                    File.WriteAllText(filepath, line);
+                }
+                else
+                {
+                    File.WriteAllText(filepath + new Random().NextDouble().ToString().Replace(".", "_"), line);
                 }
             }
-            File.WriteAllText(String.Concat(Path.GetDirectoryName(Path.GetFullPath(srcpath)), Path.DirectorySeparatorChar.ToString(), "out", Path.DirectorySeparatorChar.ToString(), name), line);
-        }
-
-        public void serializeDerestageCommand(CommandStruct command)
-        {
-
+            catch { }
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -113,13 +125,117 @@ namespace storydecode
                     Environment.Exit(1);
                 }
                 srcpath = fd.FileName;
-                //File.WriteAllBytes(fd.FileName + ".old", Parser.Create().callConvertToByte("おはようございます ! "));
-                //File.WriteAllBytes(fd.FileName + ".new", Parser.Create().callConvertToByte("Ｍｏｒｎｉｎｇ　　 ! "));
             }
-            
+
             decodeDerestageStory(srcpath);
             //decodeRaw(srcpath);
+            //LoadFromPlaneFile(srcpath);
+            //BuildPlaneFile(srcpath);
             Environment.Exit(0);
+        }
+
+        public void LoadFromPlaneFile(string srcpath)
+        {
+            string newpath = srcpath.Replace(".txt", ".bytes");
+            Parser.Create().ConvertStoryDataTextToBinary(ref srcpath, ref newpath);
+        }
+
+        public void BuildPlaneFile(string srcpath)
+        {
+            string[] needquotes = new string[] { "title", "outline", "situation", "bgm", "vo" };
+            string[] special = new string[] { "print", "log", "choice", "touch" };
+            byte[] bytes = File.ReadAllBytes(srcpath);
+            List<CommandStruct> commandlist = Parser.Create().ConvertBinaryToCommandList(bytes);
+            string content = "";
+            bool startedprinting = false;
+            foreach (CommandStruct command in commandlist)
+            {
+                if (!startedprinting && command.Name == "print")
+                {
+                    startedprinting = true;
+                    content += command.Name;
+                    content += " \"" + command.Args[0] + "\"";
+                    for (int i = 1; i < command.Args.Count; i++)
+                    {
+                        content += " \"" + command.Args[i];
+                    }
+                }
+                else
+                {
+                    if (startedprinting && command.Name == "print")
+                    {
+                        for (int i = 1; i < command.Args.Count; i++)
+                        {
+                            content += command.Args[i];
+                        }
+                    }
+                }
+                if (command.Name == "touch")
+                {
+                    startedprinting = false;
+                    content += "\"\r\n";
+                }
+                if (command.Name == "log")
+                {
+                    content += command.Name + " " + command.Args[0] + " ";
+                    for (int i = 1; i < command.Args.Count; i++)
+                    {
+                        content += "\"" + command.Args[i] + "\" ";
+                    }
+                    content += "\r\n";
+                }
+                if (command.Name == "choice")
+                {
+                    content += command.Name + " \"" + command.Args[0] + "\" ";
+                    for (int i = 1; i < command.Args.Count; i++)
+                    {
+                        content += command.Args[i] + " ";
+                    }
+                    content += "\r\n";
+                }
+                if (!startedprinting && !special.Contains(command.Name))
+                {
+                    if (needquotes.Contains(command.Name))
+                    {
+                        content += command.Name;
+                        for (int i = 0; i < command.Args.Count; i++)
+                        {
+                            content += " \"" + command.Args[i] + "\"";
+                        }
+                    }
+                    else
+                    {
+                        content += command.Name;
+                        for (int i = 0; i < command.Args.Count; i++)
+                        {
+                            content += " " + command.Args[i];
+                        }
+                    }
+                    content += "\r\n";
+                }
+                if (startedprinting && !special.Contains(command.Name))
+                {
+                    if (needquotes.Contains(command.Name))
+                    {
+                        content += "<" + command.Name;
+                        for (int i = 0; i < command.Args.Count; i++)
+                        {
+                            content += " \"" + command.Args[i] + "\"";
+                        }
+                        content += ">";
+                    }
+                    else
+                    {
+                        content += "<" + command.Name;
+                        for (int i = 0; i < command.Args.Count; i++)
+                        {
+                            content += " " + command.Args[i];
+                        }
+                        content += ">";
+                    }
+                }
+            }
+            File.WriteAllText(srcpath + "-plane.txt", content);
         }
     }
 }
