@@ -4,7 +4,7 @@
   
 Well, at least just the certain day in December part. No traditional Japanese inns where I am.  
   
-Anyway, this was started off as a simple tool to rip the text of Starlight Stage commus out of the serialized format that the game uses, mostly utilizing code from the game itself. (Refer to the DerestageClasses namespace.) But since then, more work has been done on it so it could work the other way around as well.  
+Anyway, this was started off as a simple tool to rip the text of Starlight Stage commus out of the serialized format that the game uses, mostly utilizing code from the game itself. (Refer to the DerestageClasses folder/Story.Data namespace.) But since then, more work has been done on it so it could work the other way around as well.  
   
 ![demo2](demo2.jpg?raw=true) 
   
