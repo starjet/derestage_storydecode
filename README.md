@@ -1,3 +1,9 @@
+UPDATE:  
+Now supports Princess Connect Re:dive, but only for simple dialogue and choice decoding.  
+Full command list and plane file building are NOT supported.  
+To correctly decode a Princess Connect Re:dive story text file,  
+the usage is:  storydecode.exe path-to-extracted-text-asset -redive  
+  
 # derestage_storydecode
   
 ![demo](demo.jpg?raw=true)  

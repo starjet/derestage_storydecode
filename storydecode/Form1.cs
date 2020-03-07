@@ -47,7 +47,7 @@ namespace storydecode
             File.WriteAllText(String.Concat(Path.GetDirectoryName(Path.GetFullPath(srcpath)), Path.DirectorySeparatorChar.ToString(), "", Path.DirectorySeparatorChar.ToString(), name), line);
         }
 
-        public void decodeDerestageStory(string srcpath)
+        public void decodeDerestageStory(string srcpath, bool isPriconne)
         {
             try
             {
@@ -57,38 +57,87 @@ namespace storydecode
                 List<CommandStruct> commandlist = parser.ConvertBinaryToCommandList(bytes);
                 string line = "";
                 int i = 1;
-                foreach (CommandStruct command in commandlist)
+                if (isPriconne)
                 {
-                    if (command.Name.Equals("title"))
+                    foreach (CommandStruct command in commandlist)
                     {
-                        name = String.Concat(name, " [", command.Args[0], "].txt");
-                        string illegalchars = String.Concat(new string(Path.GetInvalidFileNameChars()), new string(Path.GetInvalidPathChars()));
-                        foreach (char c in illegalchars)
+                        if (command.Name.Equals("title"))
                         {
-                            name = name.Replace(c.ToString(), String.Empty);
+                            name = String.Concat(name.Replace(".txt", ""), " [", command.Args[0], "].txt");
+                            string illegalchars = String.Concat(new string(Path.GetInvalidFileNameChars()), new string(Path.GetInvalidPathChars()));
+                            foreach (char c in illegalchars)
+                            {
+                                name = name.Replace(c.ToString(), String.Empty);
+                            }
+                        }
+                        if (command.Name.Equals("black_in"))
+                        {
+                            name = String.Concat(name.Replace(".txt", ""), " [", command.Args[0], "].txt");
+                            string illegalchars = String.Concat(new string(Path.GetInvalidFileNameChars()), new string(Path.GetInvalidPathChars()));
+                            foreach (char c in illegalchars)
+                            {
+                                name = name.Replace(c.ToString(), String.Empty);
+                            }
+                        }
+                        if (command.Name.Equals("focus"))
+                        {
+                            int j = 1;
+                            foreach (string arg in command.Args)
+                            {
+                                line = String.Concat(line, i.ToString(), ".", j.ToString(), " ", arg, "\r\n");
+                                j++;
+                            }
+                            i++;
+                            line = String.Concat(line, "\r\n");
+                        }
+                        if (command.Name.Equals("bgm") || command.Name.Equals("outline") || command.Name.Equals("black_in"))
+                        {
+                            int j = 1;
+                            foreach (string arg in command.Args)
+                            {
+                                line = String.Concat(line, i.ToString(), ".", j.ToString(), " [" + command.Name.Replace("bgm", "choice").Replace("black_in", "title") + "] ", arg, "\r\n");
+                                j++;
+                            }
+                            i++;
+                            line = String.Concat(line, "\r\n");
                         }
                     }
-                    if (command.Name.Equals("print"))
+                }
+                else
+                {
+                    foreach (CommandStruct command in commandlist)
                     {
-                        int j = 1;
-                        foreach (string arg in command.Args)
+                        if (command.Name.Equals("title"))
                         {
-                            line = String.Concat(line, i.ToString(), ".", j.ToString(), " ", arg, "\r\n");
-                            j++;
+                            name = String.Concat(name, " [", command.Args[0], "].txt");
+                            string illegalchars = String.Concat(new string(Path.GetInvalidFileNameChars()), new string(Path.GetInvalidPathChars()));
+                            foreach (char c in illegalchars)
+                            {
+                                name = name.Replace(c.ToString(), String.Empty);
+                            }
                         }
-                        i++;
-                        line = String.Concat(line, "\r\n");
-                    }
-                    if (command.Name.Equals("choice") || command.Name.Equals("outline") || command.Name.Equals("situation"))
-                    {
-                        int j = 1;
-                        foreach (string arg in command.Args)
+                        if (command.Name.Equals("print"))
                         {
-                            line = String.Concat(line, i.ToString(), ".", j.ToString(), " [" + command.Name + "] ", arg, "\r\n");
-                            j++;
+                            int j = 1;
+                            foreach (string arg in command.Args)
+                            {
+                                line = String.Concat(line, i.ToString(), ".", j.ToString(), " ", arg, "\r\n");
+                                j++;
+                            }
+                            i++;
+                            line = String.Concat(line, "\r\n");
                         }
-                        i++;
-                        line = String.Concat(line, "\r\n");
+                        if (command.Name.Equals("choice") || command.Name.Equals("outline") || command.Name.Equals("situation"))
+                        {
+                            int j = 1;
+                            foreach (string arg in command.Args)
+                            {
+                                line = String.Concat(line, i.ToString(), ".", j.ToString(), " [" + command.Name + "] ", arg, "\r\n");
+                                j++;
+                            }
+                            i++;
+                            line = String.Concat(line, "\r\n");
+                        }
                     }
                 }
                 string filepath = String.Concat(Path.GetDirectoryName(Path.GetFullPath(srcpath)), Path.DirectorySeparatorChar.ToString(), "out", Path.DirectorySeparatorChar.ToString(), name);
@@ -126,8 +175,9 @@ namespace storydecode
                 }
                 srcpath = fd.FileName;
             }
+            bool isPriconne = args.Length > 2 && args[2].Equals("-redive") ? true : false;
 
-            decodeDerestageStory(srcpath);
+            decodeDerestageStory(srcpath, isPriconne);
             //decodeRaw(srcpath);
             //LoadFromPlaneFile(srcpath);
             //BuildPlaneFile(srcpath);
